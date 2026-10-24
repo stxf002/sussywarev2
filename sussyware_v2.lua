@@ -17,6 +17,10 @@ do
         end
     end)
 
+    -- CONSUME_URL: a Google Apps Script web app that removes a key from the gist
+    -- Set this to your deployed Apps Script URL (see setup instructions)
+    local CONSUME_URL = "https://script.google.com/macros/s/AKfycbyiH6tUe9xVs24Hwc5Hadj_YmF4A6vvcFTNaEmKIrZ8wswV3wOI6gV-afuE19Ee7IZ4Gw/exec"
+
     local function fetchValidKeys()
         local ok, body = pcall(game.HttpGet, game, KEY_URL)
         if not ok or type(body) ~= "string" then return nil end
@@ -26,6 +30,13 @@ do
             if k ~= "" then t[k] = true end
         end
         return t
+    end
+
+    -- calls the Apps Script to remove the key from gist (one-time use)
+    local function consumeKey(key)
+        pcall(function()
+            game:HttpGet(CONSUME_URL .. "?action=consume&key=" .. key)
+        end)
     end
 
     local function buildUI(onSubmit)
@@ -148,13 +159,15 @@ do
                 end
                 if keys[inputKey] then
                     status.TextColor3 = Color3.fromRGB(80, 220, 80)
-                    status.Text = "✓ Valid!"
-                    -- save key so they don't have to enter it again
+                    status.Text = "✓ Valid! Activating..."
+                    -- consume key from gist (one-time use — removes it so nobody else can use it)
+                    consumeKey(inputKey)
+                    -- save key locally so re-executes work without needing a new key
                     pcall(function()
                         if not isfolder("sussywarev_2") then makefolder("sussywarev_2") end
                         writefile(KEY_FILE, inputKey)
                     end)
-                    task.wait(0.6)
+                    task.wait(0.8)
                     sg:Destroy()
                     passed = true
                     coroutine.resume(thread)
