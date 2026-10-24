@@ -1,7 +1,107 @@
 -- Deobfuscated by Meow Hook (Nocta mystical.x0p)
 -- Force global UI scale to stay at 1 permanently and prevent shrinking
 -- Run this ONCE at the very top of your script before anything else
+-- KEY SYSTEM
+local KEY_URL = "https://gist.githubusercontent.com/stxf002/XXXXX/raw/keys.txt"
 
+local function checkKey(userKey)
+    local ok, result = pcall(function()
+        return game:HttpGet(KEY_URL)
+    end)
+    if not ok then
+        error("[PhonkWare] Could not reach key server", 0)
+    end
+    for line in result:gmatch("[^\n]+") do
+        if line:gsub("%s", "") == userKey:gsub("%s", "") then
+            return true
+        end
+    end
+    return false
+end
+
+local inputKey = ""
+-- Simple GUI to ask for key
+local sg = Instance.new("ScreenGui")
+sg.Name = "KeySystem"
+sg.ResetOnSpawn = false
+sg.Parent = game:GetService("CoreGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 340, 0, 140)
+frame.Position = UDim2.new(0.5, -170, 0.5, -70)
+frame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+frame.BorderSizePixel = 0
+frame.Parent = sg
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 36)
+title.BackgroundTransparency = 1
+title.Text = "PhonkWare — Enter Key"
+title.TextColor3 = Color3.fromRGB(220, 80, 220)
+title.TextSize = 16
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+local box = Instance.new("TextBox")
+box.Size = UDim2.new(1, -24, 0, 36)
+box.Position = UDim2.new(0, 12, 0, 44)
+box.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+box.TextColor3 = Color3.fromRGB(255, 255, 255)
+box.PlaceholderText = "Paste your key here..."
+box.Text = ""
+box.TextSize = 14
+box.Font = Enum.Font.Gotham
+box.ClearTextOnFocus = false
+box.Parent = frame
+Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
+
+local btn = Instance.new("TextButton")
+btn.Size = UDim2.new(1, -24, 0, 32)
+btn.Position = UDim2.new(0, 12, 0, 90)
+btn.BackgroundColor3 = Color3.fromRGB(180, 60, 180)
+btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+btn.Text = "Submit"
+btn.TextSize = 14
+btn.Font = Enum.Font.GothamBold
+btn.Parent = frame
+Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, 0, 0, 20)
+status.Position = UDim2.new(0, 0, 1, 4)
+status.BackgroundTransparency = 1
+status.TextColor3 = Color3.fromRGB(255, 80, 80)
+status.TextSize = 13
+status.Font = Enum.Font.Gotham
+status.Text = ""
+status.Parent = frame
+
+local passed = false
+local thread = coroutine.running()
+
+btn.MouseButton1Click:Connect(function()
+    local key = box.Text
+    status.Text = "Checking..."
+    status.TextColor3 = Color3.fromRGB(200, 200, 200)
+    task.spawn(function()
+        if checkKey(key) then
+            status.Text = "✓ Valid key"
+            status.TextColor3 = Color3.fromRGB(80, 220, 80)
+            task.wait(0.8)
+            sg:Destroy()
+            passed = true
+            coroutine.resume(thread)
+        else
+            status.Text = "✗ Invalid or expired key"
+            status.TextColor3 = Color3.fromRGB(255, 80, 80)
+        end
+    end)
+end)
+
+coroutine.yield()
+if not passed then return end
+-- rest of script continues below
 pcall(function()
     if isfolder and not isfolder("sussywarev_2") then
         makefolder("sussywarev_2")
